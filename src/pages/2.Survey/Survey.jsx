@@ -73,128 +73,158 @@ export default function Survey() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      if (window.location.pathname === "/survey") {
-        setSurvey(true);
-        axios
-        .get(`/api/survey?page=0`,
-        {
-          headers: {
-            'Authorization': token,
-        },
-      })
-        .then((response) => {
-          console.log(response)
-        
-          setSurveyDummys(response.data.data.surveys);
-        })
-        .catch((response) => {
-          console.log(response);
-          console.log("응답없음");
-        });
 
-        axios
-        .get(`/api/survey/respondent`,
-        {
-          headers: {
-            'Authorization': token,
-        },
-      })
-        .then((response) => {
-          console.log(response)
-        
-          setFinishedDummys(response.data.data.surveys);
-        })
-        .catch((response) => {
-          console.log(response);
-          console.log("응답없음");
-        });
-
-        axios
-        .get(`/api/auth/account/isStudent`,
-        {
-          headers: {
-            'Authorization': token,
-        },
-      })
-        .then((response) => {
-          console.log(response)
-          setIsStudent(response.data.data.studentAccount)
-      
-        })
-        .catch((response) => {
-          console.log(response);
-          console.log("응답없음");
-        });
-
+    if (!token) {
+      navigate("/login"); // 로그인되지 않은 경우 로그인 페이지로 이동
+      return;
     }
-    else if (window.location.pathname === "/market") {
-      setSurvey(false);
-      axios
-        .get(`/api/data/list`,
-          {
-            headers: {
-              Authorization: token,
-            },
-          })
-          .then((response) => {
-            console.log(response);
+    setSurvey(window.location.pathname === "/survey");
+    const fetchData = async () => {
+      try {
+        const [surveyResponse, studentResponse, finishedResponse] = await Promise.all([
+          axios.get(`/api/${survey ? 'survey?page=0' : 'data/list'}`, { headers: { 'Authorization': token } }),
+          axios.get('/api/auth/account/isStudent', { headers: { 'Authorization': token } }),
+          axios.get(`/api/${survey ? 'survey/respondent' : 'data/list/buyer'}`, { headers: { 'Authorization': token } })
+        ]);
 
-            setSurveyDummys(response.data.data.surveys);
-          })
-          .catch((response) => {
-            console.log(response);
-            console.log("응답없음");
-          });
-
-        axios
-          .get(`/api/survey/respondent`, {
-            headers: {
-              Authorization: token,
-            },
-          })
-          .then((response) => {
-            console.log(response);
-
-            setFinishedDummys(response.data.data.surveys);
-          })
-          .catch((response) => {
-            console.log(response);
-            console.log("응답없음");
-          });
-        axios
-          .get(`/api/data/list`, {
-            headers: {
-              Authorization: token,
-            },
-          })
-          .then((response) => {
-            console.log(response);
-            setSurveyDummys(response.data.data.datas);
-          })
-          .catch((response) => {
-            console.log(response);
-            console.log("응답없음");
-          });
-
-        axios
-          .get(`/api/data/list/buyer`, {
-            headers: {
-              Authorization: token,
-            },
-          })
-          .then((response) => {
-            console.log(response);
-
-            setFinishedDummys(response.data.data.datas);
-          })
-          .catch((response) => {
-            console.log(response);
-            console.log("응답없음");
-          });
+        setSurveyDummys(survey?surveyResponse.data.data.surveys:surveyResponse.data.data.datas);
+        setIsStudent(studentResponse.data.data.studentAccount);
+        setFinishedDummys(survey?finishedResponse.data.data.surveys:finishedResponse.data.data.datas);
+      } catch (error) {
+        console.error("API 요청 중 오류 발생:", error);
+        // 오류 처리 로직 추가
       }
-    }
-  }, [window.location.pathname]);
+    };
+
+    fetchData();
+
+  }, [navigate, survey, setSurveyDummys]);
+
+
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     if (window.location.pathname === "/survey") {
+  //       setSurvey(true);
+  //       axios
+  //       .get(`/api/survey?page=0`,
+  //       {
+  //         headers: {
+  //           'Authorization': token,
+  //       },
+  //     })
+  //       .then((response) => {
+  //         console.log(response)
+        
+  //         setSurveyDummys(response.data.data.surveys);
+  //       })
+  //       .catch((response) => {
+  //         console.log(response);
+  //         console.log("응답없음");
+  //       });
+
+  //       axios
+  //       .get(`/api/survey/respondent`,
+  //       {
+  //         headers: {
+  //           'Authorization': token,
+  //       },
+  //     })
+  //       .then((response) => {
+  //         console.log(response)
+        
+  //         setFinishedDummys(response.data.data.surveys);
+  //       })
+  //       .catch((response) => {
+  //         console.log(response);
+  //         console.log("응답없음");
+  //       });
+
+  //       axios
+  //       .get(`/api/auth/account/isStudent`,
+  //       {
+  //         headers: {
+  //           'Authorization': token,
+  //       },
+  //     })
+  //       .then((response) => {
+  //         console.log(response)
+  //         setIsStudent(response.data.data.studentAccount)
+      
+  //       })
+  //       .catch((response) => {
+  //         console.log(response);
+  //         console.log("응답없음");
+  //       });
+
+  //   }
+  //   else if (window.location.pathname === "/market") {
+  //     setSurvey(false);
+  //     axios
+  //       .get(`/api/data/list`,
+  //         {
+  //           headers: {
+  //             Authorization: token,
+  //           },
+  //         })
+  //         .then((response) => {
+  //           console.log(response);
+
+  //           setSurveyDummys(response.data.data.surveys);
+  //         })
+  //         .catch((response) => {
+  //           console.log(response);
+  //           console.log("응답없음");
+  //         });
+
+  //       axios
+  //         .get(`/api/survey/respondent`, {
+  //           headers: {
+  //             Authorization: token,
+  //           },
+  //         })
+  //         .then((response) => {
+  //           console.log(response);
+
+  //           setFinishedDummys(response.data.data.surveys);
+  //         })
+  //         .catch((response) => {
+  //           console.log(response);
+  //           console.log("응답없음");
+  //         });
+  //       axios
+  //         .get(`/api/data/list`, {
+  //           headers: {
+  //             Authorization: token,
+  //           },
+  //         })
+  //         .then((response) => {
+  //           console.log(response);
+  //           setSurveyDummys(response.data.data.datas);
+  //         })
+  //         .catch((response) => {
+  //           console.log(response);
+  //           console.log("응답없음");
+  //         });
+
+  //       axios
+  //         .get(`/api/data/list/buyer`, {
+  //           headers: {
+  //             Authorization: token,
+  //           },
+  //         })
+  //         .then((response) => {
+  //           console.log(response);
+
+  //           setFinishedDummys(response.data.data.datas);
+  //         })
+  //         .catch((response) => {
+  //           console.log(response);
+  //           console.log("응답없음");
+  //         });
+  //     }
+  //   }
+  // }, [window.location.pathname]);
 
   return (
     <>
